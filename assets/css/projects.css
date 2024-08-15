@@ -3,7 +3,71 @@
 :root {
     --color-background: 30, 39, 56;  /* #1e2738 */
     --color-text: 165, 179, 206;  /* #a5b3ce */
-    --color-heading: 255, 255, 255;
+    --color-heading: 255, 255, 255;a/* projects.css */
+
+    /* ... (keep the existing CSS up to the .project-card styles) ... */
+    
+    .project-card {
+        display: flex;
+        flex-direction: column;
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .project-card:hover {
+        transform: translateY(-0.25rem);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .thumbnail {
+        position: relative;
+        width: 100%;
+        padding-top: 56.25%; /* 16:9 Aspect Ratio */
+        overflow: hidden;
+    }
+    
+    .thumbnail::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    
+    .project-info {
+        padding: 1rem;
+        flex: 1;
+    }
+    
+    /* ... (keep the rest of the existing CSS) ... */
+    
+    @media (min-width: 768px) {
+        .project-card {
+            flex-direction: row;
+            align-items: stretch;
+        }
+    
+        .thumbnail {
+            width: 40%;
+            padding-top: 0;
+            align-self: stretch;
+        }
+    
+        .project-info {
+            width: 60%;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+    }
     --color-primary-50: 239, 246, 255;
     --color-primary-100: 219, 234, 254;
     --color-primary-200: 191, 219, 254;
@@ -71,7 +135,7 @@ a {
 
 .project-card {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 0.5rem;
     overflow: hidden;
@@ -89,6 +153,7 @@ a {
     height: 200px;
     background-size: cover;
     background-position: center;
+    background-repeat: no-repeat;
 }
 
 .project-info {
@@ -137,15 +202,19 @@ a {
 
 @media (min-width: 768px) {
     .project-card {
-        flex-wrap: nowrap;
+        flex-direction: row;
     }
 
     .thumbnail {
-        width: 200px;
+        width: 300px;
         height: auto;
+        min-height: 100%;
     }
 
     .project-info {
         padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
     }
 }
