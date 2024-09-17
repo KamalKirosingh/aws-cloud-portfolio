@@ -15,5 +15,4 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Sync files to S3 bucket
-        run: |
         run: aws s3 sync ./website s3://kamalkiro.xyz --delete
