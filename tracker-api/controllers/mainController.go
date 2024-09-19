@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/gin-gonic/gin"
-	"github.com/harisheoran/tracker_api/models"
+	"github.com/KamalKirosingh/tracker_api/models"
 )
 
 func MainHandler(context *gin.Context) {
