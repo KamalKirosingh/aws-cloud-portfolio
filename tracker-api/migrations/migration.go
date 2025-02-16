@@ -53,7 +53,7 @@ func main() {
 }
 
 func CreateProductionClient() *dynamodb.Client {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-west-2"))
 	if err != nil {
 		panic(err)
 	}
