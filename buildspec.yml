@@ -4,6 +4,8 @@ env:
     DOCKER_USERNAME: docker_username
     DOCKER_PASSWORD: docker_password
     DOCKER_URL: docker_url
+  variables:
+    AWS_REGION: "eu-west-2"
 phases:
   build:
     commands:

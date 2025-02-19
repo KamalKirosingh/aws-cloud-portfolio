@@ -1,13 +1,20 @@
 version: 0.0
 os: linux
-
 hooks:
   ApplicationStop:
     - location: scripts/stop_container.sh
       timeout: 300
       runas: root
-
+      environment:
+        variables:
+          AWS_REGION: "eu-west-2"
+          AWS_DEFAULT_REGION: "eu-west-2"
   AfterInstall:
     - location: scripts/start_container.sh
       timeout: 300
       runas: root
+      environment:
+        variables:
+          AWS_REGION: "eu-west-2"
+          AWS_DEFAULT_REGION: "eu-west-2"
+

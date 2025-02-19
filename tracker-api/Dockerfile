@@ -19,6 +19,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o build/main .
 
 #COPY --from=build /app/main .
 
+ENV AWS_REGION=eu-west-2
+
 EXPOSE 4000
 
 ENTRYPOINT [ "./build/main" ]
