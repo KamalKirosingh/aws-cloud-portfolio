@@ -384,4 +384,22 @@ Modules: Programming in C++ (85.1), Object-Orientation Analysis (81), Data Struc
 				target="_blank">Xiaoying Riley</a> for developers</small>
 	</footer>
 
+	<script>
+		window.onload = function () {
+			fetch('http://18.171.239.240:4000')
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok');
+					}
+					return response.json();
+				})
+				.then(data => {
+					document.getElementById("counter").innerText = "View: " + data.response;
+				})
+				.catch(error => {
+					console.error('There was a problem with the fetch operation:', error);
+				});
+		};
+	</script>
+
 </body>
