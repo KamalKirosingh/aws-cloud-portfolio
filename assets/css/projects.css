@@ -86,7 +86,7 @@ body {
     font-size: 1.125rem;
     line-height: 1.75rem;
     color: rgb(var(--color-text));
-    background-color: rgb(var(--color-background));
+    background-color: #19202e;
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
 }
@@ -124,8 +124,8 @@ a {
 }
 
 .btn-primary:hover {
-    color: rgb(var(--color-primary-300));
-    border-color: rgb(var(--color-primary-300));
+    color: #9bc2f2;
+    border-color: #9bc2f2;
 }
 
 .projects-grid {
@@ -139,6 +139,7 @@ a {
     flex-direction: column;
     border-radius: 0.5rem;
     overflow: hidden;
+    background-color: rgb(var(--color-background));
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }

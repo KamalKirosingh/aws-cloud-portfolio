@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Website with View Tracking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AWS Cloud Portfolio Project </h1>
+            <a href="projects.html" class="btn btn-primary">Back to Projects</a>
+        </header>
+
+        <main>
+            <section class="project-details">
+                <h2>Project Overview</h2>
+                <h3>Objective:</h3>
+                <p>Developed a professional resume website hosted on AWS, utilizing various AWS services for enhanced performance, scalability, and security.</p>
+
+                <h3>Key AWS Services Used:</h3>
+                <ul>
+                    <li>Amazon S3 for static website hosting</li>
+                    <li>AWS CloudFront for content delivery</li>
+                    <li>AWS Certificate Manager (ACM) for SSL/TLS</li>
+                    <li>AWS Route 53 for DNS management</li>
+                    <li>AWS DynamoDB for data storage</li>
+                    <li>AWS CodePipeline, CodeBuild, and CodeDeploy for CI/CD automation</li>
+                    <li>AWS IAM for secure access management</li>
+                </ul>
+
+                <h3>Website Development & Hosting</h3>
+                <ul>
+                    <li>Built a static resume website using a Bootstrap template.</li>
+                    <li>Hosted the static content on an S3 bucket named after the domain.</li>
+                    <li>Configured static website hosting and uploaded website files.</li>
+                </ul>
+                <p><strong>Issue:</strong> Initial 403 error occurred when accessing the website.<br>
+                <strong>Cause:</strong> Missing bucket policy permissions.<br>
+                <strong>Solution:</strong> Defined a bucket policy to allow public read access while noting the security implications.</p>
+
+                <h3>CloudFront Integration for Performance & Security</h3>
+                <ul>
+                    <li>Integrated AWS CloudFront as a Content Delivery Network (CDN) to improve performance through caching at edge locations.</li>
+                    <li>Generated an SSL certificate via ACM (in the N. Virginia region) to enable HTTPS.</li>
+                    <li>Updated the S3 bucket policy to restrict direct access, allowing access only through CloudFront.</li>
+                </ul>
+
+                <h3>DNS Management with AWS Route 53</h3>
+                <ul>
+                    <li>Created a hosted zone for the domain.</li>
+                    <li>Added name servers to the domain register.</li>
+                    <li>Created an A record (Alias) to point the domain to the CloudFront distribution.</li>
+                </ul>
+
+                <h3>CI/CD Pipeline for Frontend Deployment</h3>
+                <ul>
+                    <li>Configured a GitHub Actions workflow to automate website deployment to the S3 bucket.</li>
+                    <li>Stored AWS credentials as encrypted GitHub secrets.</li>
+                </ul>
+
+                <pre><code>GitHub Actions Workflow:
+name: Push to S3
+on: [push]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup AWS CLI
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Sync files to S3
+        run: |
+          aws s3 sync ./website s3://yourdomain.com --delete
+                </code></pre>
+
+                <h3>View Tracking API Development</h3>
+                <ul>
+                    <li>Developed a View Tracking API using Go with the Gin framework.</li>
+                    <li>Integrated AWS DynamoDB for storing and retrieving view counts.</li>
+                </ul>
+
+                <h4>API Functionality:</h4>
+                <p>On a GET / request, the API increments and retrieves the current view count.</p>
+
+                <h4>Docker Containerisation:</h4>
+                <p>Containerised the API using Docker for easy deployment.</p>
+
+                <pre><code>Dockerfile:
+FROM golang:1.22
+WORKDIR /app
+COPY go.* ./
+RUN go mod download
+COPY . .
+RUN mkdir build
+RUN CGO_ENABLED=0 GOOS=linux go build -o build/main .
+EXPOSE 4000
+ENTRYPOINT ["./build/main"]
+                </code></pre>
+
+                <h3>CI/CD Pipeline for API Deployment</h3>
+                <ul>
+                    <li>Built a CI pipeline using AWS CodeBuild to build the Docker image and push it to Docker Hub.</li>
+                    <li>Configured AWS Systems Manager Parameter Store to manage Docker credentials securely.</li>
+                </ul>
+
+                <pre><code>BuildSpec.yml File:
+version: 0.2
+env:
+  parameter-store:
+    DOCKER_USERNAME: docker_username
+    DOCKER_PASSWORD: docker_password
+    DOCKER_URL: docker_url
+phases:
+  build:
+    commands:
+      - cd tracker_api/
+      - echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin $DOCKER_URL
+      - docker build -t "$DOCKER_USERNAME/view_api_img:latest" .
+      - docker push "$DOCKER_USERNAME/view_api_img:latest"
+  post_build:
+    commands:
+      - echo "Successfully pushed to Docker Hub"
+artifacts:
+  files:
+    - '**/*'
+  name: my-artifact
+                </code></pre>
+
+                <h3>Deployment Automation with AWS CodeDeploy</h3>
+                <ul>
+                    <li>Created CodeDeploy applications and deployment groups.</li>
+                    <li>Installed the CodeDeploy agent on the EC2 instance.</li>
+                    <li>Utilised IAM roles for secure communication between CodeDeploy and EC2.</li>
+                    <li>Pulls the new Docker image from Docker Hub.</li>
+                    <li>Stops the old container.</li>
+                    <li>Starts the new container.</li>
+                </ul>
+
+                <pre><code>AppSpec.yml File:
+version: 0.0
+os: linux
+hooks:
+  ApplicationStop:
+    - location: scripts/stop_container.sh
+      timeout: 300
+      runas: root
+  AfterInstall:
+    - location: scripts/start_container.sh
+      timeout: 300
+      runas: root
+                </code></pre>
+
+                <h3>Common Issues & Resolutions</h3>
+                <ol>
+                    <li><strong>CodeDeploy Agent Connection Failure</strong>
+                        <ul>
+                            <li>Error: CodeDeploy agent couldn't receive lifecycle events.</li>
+                            <li>Solution: Restart the agent and verify IAM role permissions.</li>
+                        </ul>
+                    </li>
+                    <li><strong>AWS CodePipeline Role Authorisation Failure</strong>
+                        <ul>
+                            <li>Cause: Insufficient permissions for accessing S3 artifacts.</li>
+                            <li>Solution: Updated IAM policy to allow artifact access.</li>
+                        </ul>
+                    </li>
+                    <li><strong>CloudFront Cache Invalidation</strong>
+                        <ul>
+                            <li>Issue: Website didn't reflect recent changes due to caching.</li>
+                            <li>Solution: Manually invalidated the CloudFront cache.</li>
+                        </ul>
+                    </li>
+                    <li><strong>Mixed Content Block (HTTP/HTTPS)</strong>
+                        <ul>
+                            <li>Error: API requests over HTTP were blocked.</li>
+                            <li>Solution: Implemented Nginx reverse proxy with HTTPS.</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <h3>Key Learnings & Best Practices</h3>
+                <ul>
+                    <li>S3 Bucket Permissions: Always re-enable "Block Public Access" after configuring CloudFront.</li>
+                    <li>Docker: Understanding the isolation between container and host networks is crucial.</li>
+                    <li>CloudFront: Cache invalidation is essential during website updates.</li>
+                    <li>CI/CD: Parameterizing credentials with AWS Parameter Store enhances security.</li>
+                    <li>Bash Scripting: Simplifies Docker container management.</li>
+                </ul>
+
+                <h3>Unanswered Questions</h3>
+                <ul>
+                    <li>Why are Deployment Groups necessary?</li>
+                    <li>Why must artifacts be uploaded to an S3 bucket in AWS CodePipeline?</li>
+                </ul>
+
+                <h3>References:</h3>
+                <ul>
+                    <li><a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/WebsiteHosting.html">AWS S3 Website Hosting</a></li>
+                    <li><a href="https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/Welcome.html">AWS Route 53 Documentation</a></li>
+                    <li><a href="https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/Introduction.html">AWS CloudFront</a></li>
+                    <li><a href="https://aws.amazon.com/dynamodb/">DynamoDB with Go</a></li>
+                </ul>
+            </section>
+        </main>
+    </div>
+</body>
+</html> 
