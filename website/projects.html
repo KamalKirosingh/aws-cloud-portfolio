@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kamal's Projects</title>
+    <title>My Projects</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="assets/css/projects.css" rel="stylesheet">
+    <link href="../assets/css/projects.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
@@ -13,12 +13,11 @@
             <h1>Projects</h1>
             <a href="index.html" class="btn-primary">Back to Portfolio</a>
         </header>
-
         <main>
             <div class="projects-grid">
                 <!-- Project 1 -->
                 <a class="project-card" href="aws-portfolio-project.html">
-                    <div class="thumbnail" style="background-image:url(assets/images/aws-portfolio.png);width: 388px;height: 230px;"></div>
+                    <div class="thumbnail" style="background-image:url(../assets/images/aws-portfolio.png);width: 388px;height: 230px;"></div>
                     <div class="project-info">
                         <h2 class="project-title">AWS Full Stack Resume Project</h2>
                         <div class="project-meta">
@@ -28,7 +27,7 @@
                             <span class="separator">·</span>
                             <span>8 mins</span>
                             <span class="separator">·</span>
-                            <span class="views">153 views</span>
+                            <span class="views" id="aws-views">53 views</span>
                         </div>
                         <div class="project-categories">
                             <span class="category">AWS</span>
@@ -43,36 +42,12 @@
                             <span class="category">AWS Systems Manager</span>
                             <span class="category">AWS Certificate Manager</span>
                         </div>
-
                         <p class="project-description">Portfolio project deployed on S3.</p>
                     </div>
                 </a>
-
-                <!-- Project 2 -->
-                <!-- <a class="project-card" href="#">
-                    <div class="thumbnail" style="background-image:url(/path/to/project2-image.jpg)"></div>
-                    <div class="project-info">
-                        <h2 class="project-title">Project Title 2</h2>
-                        <div class="project-meta">
-                            <time datetime="2024-07-15">15 July 2024</time>
-                            <span class="separator">·</span>
-                            <span>1200 words</span>
-                            <span class="separator">·</span>
-                            <span>6 mins</span>
-                            <span class="separator">·</span>
-                            <span class="views">98 views</span>
-                        </div>
-                        <div class="project-categories">
-                            <span class="category">web</span>
-                            <span class="category">react</span>
-                        </div>
-                        <p class="project-description">This is a brief description of your second project. Highlight its key features and technologies.</p>
-                    </div>
-                </a> -->
-
-                <!-- Add more project cards as needed -->
             </div>
         </main>
     </div>
+    <script src="../assets/js/view-counter.js"></script>
 </body>
-</html>
+</html> 

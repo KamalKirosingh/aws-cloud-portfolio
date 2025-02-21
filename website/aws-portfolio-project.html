@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Website with View Tracking System</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <link href="assets/css/styles.css" rel="stylesheet">
+    <link href="../assets/css/styles.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>AWS Cloud Portfolio Project </h1>
+            <h1>AWS Cloud Portfolio Project</h1>
             <a href="projects.html" class="btn btn-primary">Back to Projects</a>
         </header>
-
+        <img src="../assets/images/aws-portfolio.png" alt="Project Photo">
         <main>
             <section class="project-details">
                 <h2>Project Overview</h2>
@@ -99,17 +99,9 @@ WORKDIR /app
 COPY go.* ./
 RUN go mod download
 COPY . .
-RUN mkdir build
-RUN CGO_ENABLED=0 GOOS=linux go build -o build/main .
-EXPOSE 4000
-ENTRYPOINT ["./build/main"]
+RUN go build -o /view-tracker
+CMD ["/view-tracker"]
                 </code></pre>
-
-                <h3>CI/CD Pipeline for API Deployment</h3>
-                <ul>
-                    <li>Built a CI pipeline using AWS CodeBuild to build the Docker image and push it to Docker Hub.</li>
-                    <li>Configured AWS Systems Manager Parameter Store to manage Docker credentials securely.</li>
-                </ul>
 
                 <pre><code>BuildSpec.yml File:
 version: 0.2
