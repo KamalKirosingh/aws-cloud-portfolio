@@ -24,24 +24,43 @@ h1, .h1, h2, .h2, h3, .h3, h4, .h4, h5, .h5, h6, .h6 {
 }
 
 a {
-    color: #629feb;
+    color: inherit;
     text-decoration: none;
-}
-
-a:hover {
-    color: #6ba5ec;
+    transition: color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-primary {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
     color: #66a3ff;
-    background: none;
-    font-weight: bold;
-    padding: 0.675rem 1.5rem;
-    font-size: 1rem;
-    border: none;
+    border: 1px solid #66a3ff;
+    border-radius: 0.25rem;
+    transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: transparent;
 }
 
 .btn-primary:hover, .btn-primary:active {
+    color: #fff;
+    background: none;
+}
+
+.btn-primary:hover {
+    color: #9bc2f2;
+    border-color: #9bc2f2;
+}
+
+.btn-read-more {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    color:#66a3ff;
+    border-radius: 0.25rem;
+    background-color: transparent;
+
+}
+
+.btn-read-more:hover {
     color: #fff;
     background: none;
 }
