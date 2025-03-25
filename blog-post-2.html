@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Journey of Pod Creation in Kubernetes</title>
+    <link href="/assets/css/blog-post-1.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="text-center my-5">
+            <h1>The Journey of Pod Creation in Kubernetes</h1>
+            <a href="blog.html" class="btn-primary mt-3">Back to Blog</a>
+        </header>
+        <main>
+            <article>
+                <h2>Introduction</h2>
+                <p>I'll be honest — until recently, Kubernetes was just this mystical black box to me. I knew it was something developers used to manage containers, but the actual mechanics? Total mystery. Then I started digging into how Pods are created, and wow, what a rabbit hole of fascinating complexity!</p>
+                
+                <p>What I thought was a simple "create a container" process is actually an intricate dance involving multiple Kubernetes components, each playing a crucial role. Let me walk you through what I've learned about the incredible journey of a Pod from definition to running container.</p>
+                
+                <h2>The Initial Step: Submitting a Pod Definition</h2>
+                <p>Let's start with a simple Pod definition:</p>
+                <pre><code class="language-yaml">
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                name: my-pod
+                spec:
+                containers:
+                    - name: web
+                    - name: web
+                    image: nginx
+                    ports:
+                        - name: web
+                        containerPort: 80</code></pre>
+                
+                <p>When you run <code>kubectl apply -f pod.yaml</code>, you're triggering a chain of events that most developers never see.</p>
+                
+                <h2>The API Server and Scheduler: First Line of Processing</h2>
+                <ol>
+                    <li><strong>API Server Intake</strong>: The Kubernetes API receives your Pod definition and stores it in etcd, the cluster's distributed database. This is the first checkpoint in your Pod's lifecycle.</li>
+                    <li><strong>Scheduling Magic</strong>: The Scheduler then takes center stage. It doesn't just randomly place your Pod—it's a sophisticated matchmaker:
+                        <ul>
+                            <li>Analyses the Pod's resource requirements</li>
+                            <li>Evaluates available nodes</li>
+                            <li>Uses complex "Filters and Predicates" to find the perfect node</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <p>At this point, the Pod is marked as scheduled in etcd, but—interestingly—it doesn't actually exist yet!</p>
+                
+                <h2>The Kubelet: Your Cluster's Diligent Worker</h2>
+                <p>Enter the kubelet, the workhorse of each node. It is constantly polling the control plane: "Any new Pods for me?"</p>
+                
+                <p>When a Pod is assigned to its node, the kubelet doesn't create the Pod alone. Instead, it orchestrates three critical interfaces:</p>
+                
+                <h3>1. Container Runtime Interface (CRI)</h3>
+                <p>Responsible for creating containers—similar to running <code>docker run -d &lt;image&gt;</code>. It brings your container to life.</p>
+                
+                <h3>2. Container Network Interface (CNI)</h3>
+                <p>This is where networking magic happens:</p>
+                <ul>
+                    <li>Generates a unique IP address for the Pod</li>
+                    <li>Connects the container to the cluster network</li>
+                    <li>Handles complex networking scenarios (IPv4, IPv6, multiple IPs)</li>
+                </ul>
+                
+                <h3>3. Container Storage Interface (CSI)</h3>
+                <p>Manages volume mounting, ensuring your containers have the right storage attached.</p>
+                
+                <h2>The Control Plane Update</h2>
+                <p>Here's a crucial detail: After the CNI assigns an IP, the kubelet reports back to the control plane. This step is vital—it's how the cluster knows the Pod is truly ready.</p>
+                
+                <h2>Services and Endpoints: The Traffic Directors</h2>
+                <p>When your Pod is part of a Service, another layer emerges:</p>
+                
+                <pre><code class="language-yaml">
+                apiVersion: v1
+                kind: Service
+                metadata:
+                name: my-service
+                spec:
+                ports:
+                - port: 80
+                    targetPort: 3000
+                selector:
+                    name: app</code></pre>
+                
+              <p>
+                When you submit the Service to the cluster with kubectl apply, Kubernetes finds all the Pods that have the same label as the selector (name: app) and collects their IP addresses — but only if they passed the Readiness probe.
+Then, for each IP address, it concatenates the IP address and the port.
+If the IP address is 10.0.0.3 and the targetPort is 3000, Kubernetes concatenates the two values and calls them an endpoint.
+              </p>
+                
+                <h3>The Endpoint Lifecycle</h3>
+                <p>
+
+                </p>
+                <p>Endpoints are dynamic! They update when:</p>
+                <ul>
+                    <li>Pods are created</li>
+                    <li>Pods are deleted</li>
+                    <li>Pod labels change</li>
+                </ul>
+                
+                <h2>Beyond Services: Ingress and kube-proxy</h2>
+                <p>Endpoints aren't just for show:</p>
+                <ul>
+                    <li><strong>kube-proxy</strong> uses them to set up iptables rules</li>
+                    <li><strong>Ingress controllers</strong> use endpoints to route external traffic directly to Pods</li>
+                </ul>
+                
+                <h2>Conclusion</h2>
+                <ol>
+                    <li>Pod creation is a multi-step, collaborative process</li>
+                    <li>Multiple Kubernetes components work in conjuction with each other</li>
+                    <li>The system is designed to be dynamic and responsive</li>
+                </ol>
+                
+                <p>Next time I run <code>kubectl apply</code>, I'll take a moment to appreciate the sophisticated process happening behind the scenes!</p>
+            </article>
+        </main>
+    </div>
+    <script src="/assets/js/view-counter.js"></script>
+</body>
+</html>
