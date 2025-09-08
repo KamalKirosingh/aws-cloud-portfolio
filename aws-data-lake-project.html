@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Data Lake Architecture with AWS S3 Tables and Kinesis Firehose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AWS Data Lake Architecture Project</h1>
+            <a href="projects.html" class="btn btn-primary">Back to Projects</a>
+        </header>
+        <main>
+            <section class="project-details">
+                <h2>Project Overview</h2>
+                <h3>Objective:</h3>
+                <p>Developed a real-time data streaming and analytics architecture designed to capture, process, and store audit events for content management systems. The solution addresses the need for scalable, queryable data storage while maintaining real-time processing capabilities for business intelligence and compliance requirements.</p>
+
+                <h3>Key AWS Services Used:</h3>
+                <ul>
+                    <li>Amazon Kinesis Data Streams for real-time data ingestion</li>
+                    <li>Amazon Kinesis Data Firehose for data delivery and transformation</li>
+                    <li>AWS S3 Tables (Apache Iceberg) for ACID-compliant data storage</li>
+                    <li>AWS Lake Formation for data governance and security</li>
+                    <li>Amazon Athena for SQL-based analytics</li>
+                    <li>AWS Glue for data cataloging</li>
+                    <li>Terraform for Infrastructure as Code</li>
+                </ul>
+
+                <h3>Architecture Components</h3>
+                <p>The solution leverages a modern AWS-native architecture consisting of five key components:</p>
+                <ul>
+                    <li><strong>Amazon Kinesis Data Streams:</strong> Acts as the entry point for real-time data ingestion, providing a scalable buffer for incoming audit events from various content management systems.</li>
+                    <li><strong>Amazon Kinesis Data Firehose:</strong> Serves as the data delivery mechanism, automatically batching and transforming streaming data before delivery to the storage layer.</li>
+                    <li><strong>AWS S3 Tables:</strong> The core storage component utilising the Apache Iceberg format, providing ACID transactions, schema evolution, and optimised query performance.</li>
+                    <li><strong>AWS Lake Formation:</strong> Manages data governance, security, and access control across the data lake, ensuring proper permissions and compliance.</li>
+                    <li><strong>Amazon Athena:</strong> Enables SQL-based querying and analytics on the stored data, providing business users with familiar query interfaces.</li>
+                </ul>
+
+                <h3>S3 Tables Configuration</h3>
+                <p>Setting up S3 Tables was surprisingly straightforward. Here's the Terraform configuration used to create the table structure:</p>
+
+                <pre><code>resource "aws_s3tables_table_bucket" "this" {
+  name = var.table_bucket_name
+}
+
+resource "aws_s3tables_namespace" "this" {
+  namespace        = var.namespace_name
+  table_bucket_arn = aws_s3tables_table_bucket.this.arn
+}
+
+resource "aws_s3tables_table" "this" {
+  name             = var.table_name
+  table_bucket_arn = aws_s3tables_table_bucket.this.arn
+  format           = "ICEBERG"
+  namespace        = aws_s3tables_namespace.this.namespace
+}
+                </code></pre>
+
+                <p>The schema definition supports flexible audit event structures:</p>
+                <ul>
+                    <li><strong>type:</strong> Event classification (required)</li>
+                    <li><strong>record_id:</strong> Unique identifier (optional)</li>
+                    <li><strong>event_type:</strong> Specific event category (optional)</li>
+                </ul>
+
+                <h3>Kinesis Firehose Integration</h3>
+                <p>The most significant change was migrating from traditional S3 delivery to Iceberg format delivery:</p>
+
+                <pre><code>resource "aws_kinesis_firehose_delivery_stream" "audit_feedback_firehose_stream" {
+  name        = "${var.EXTERNAL_ENV_NAME}-testing-audit-feedback-firehose-stream"
+  destination = "iceberg"
+
+  iceberg_configuration {
+    role_arn           = aws_iam_role.audit_feedback_firehose_role.arn
+    catalog_arn        = "arn:aws:glue:${var.AWS_REGION}:${var.AWS_ACCOUNT_ID}:catalog/s3tablescatalog/${module.dependencies.values.s3_table.table_bucket_name}"
+    buffering_size     = 10
+    buffering_interval = 10
+
+    destination_table_configuration {
+      database_name = module.dependencies.values.s3_table.table_namespace_name
+      table_name    = module.dependencies.values.s3_table.table_name
+    }
+  }
+}
+                </code></pre>
+
+                <h3>Lake Formation Permissions</h3>
+                <p>The implementation includes automated Lake Formation permission setup:</p>
+
+                <pre><code>aws lakeformation grant-permissions \
+  --principal '{"DataLakePrincipalIdentifier": "arn:aws:iam::account:role/firehose-role"}' \
+  --permissions "ALL" \
+  --resource '{
+    "Table": {
+      "CatalogId": "account:s3tablescatalog/bucket-name",
+      "DatabaseName": "audit_namespace",
+      "Name": "audit_table"
+    }
+  }'
+                </code></pre>
+
+                <h3>Why S3 Tables?</h3>
+                <p>The decision to adopt AWS S3 Tables was driven by several key advantages over traditional approaches:</p>
+                <ul>
+                    <li><strong>Native Iceberg Support:</strong> S3 Tables provides managed Apache Iceberg tables, eliminating the need for custom Iceberg catalog management and reducing operational overhead.</li>
+                    <li><strong>ACID Transactions:</strong> Unlike traditional S3 storage, S3 Tables ensures data consistency through ACID transactions, critical for audit data integrity.</li>
+                    <li><strong>Schema Evolution:</strong> The platform supports seamless schema changes without requiring data migration, essential for evolving audit requirements.</li>
+                    <li><strong>Optimised Query Performance:</strong> Built-in optimisations like automatic compaction and metadata management significantly improve query performance compared to traditional partitioned S3 storage.</li>
+                    <li><strong>Simplified Architecture:</strong> The managed service reduces the complexity previously required with Glue catalogs and custom partitioning schemes.</li>
+                </ul>
+
+                <h3>Migration Benefits</h3>
+                <p>The transition from the previous Glue-based approach to S3 Tables eliminated:</p>
+                <ul>
+                    <li>Complex dynamic partitioning configurations</li>
+                    <li>Manual schema management in Glue catalogs</li>
+                    <li>Custom metadata extraction processors</li>
+                    <li>Parquet serialization complexity</li>
+                </ul>
+                <p>This simplification resulted in more maintainable infrastructure while providing superior query performance and data consistency guarantees.</p>
+
+                <h3>Key Learnings & Best Practices</h3>
+                <ul>
+                    <li><strong>Iceberg Format:</strong> Understanding the benefits of ACID transactions in data lake environments is crucial for audit data integrity.</li>
+                    <li><strong>Schema Evolution:</strong> S3 Tables makes schema changes much more manageable compared to traditional approaches.</li>
+                    <li><strong>Performance Optimization:</strong> Built-in compaction and metadata management significantly improve query performance.</li>
+                    <li><strong>Governance:</strong> Lake Formation provides a unified approach to data security and access control.</li>
+                    <li><strong>Infrastructure as Code:</strong> Terraform makes managing complex data lake architectures more maintainable.</li>
+                </ul>
+
+                <h3>Architecture Benefits</h3>
+                <ul>
+                    <li><strong>Real-time Processing:</strong> Data flows from content management systems to analytics in near real-time</li>
+                    <li><strong>ACID Compliance:</strong> S3 Tables ensures data consistency for audit requirements</li>
+                    <li><strong>Scalable Architecture:</strong> Each component scales independently based on demand</li>
+                    <li><strong>Unified Governance:</strong> Lake Formation manages security across all layers</li>
+                    <li><strong>Business-Friendly:</strong> Athena provides familiar SQL interface for end users</li>
+                </ul>
+
+                <h3>Enhanced Security and Encryption Configuration</h3>
+                <p>The implementation includes comprehensive security measures to protect data at rest and in transit. Server-side encryption with AWS KMS is enforced for S3 Tables:</p>
+                <pre><code>encryption_configuration = {
+  kms_key_arn   = var.kms_key_arn
+  sse_algorithm = "aws:kms"
+}
+                </code></pre>
+                <p>A dedicated KMS key policy ensures S3 Tables maintenance services have appropriate access:</p>
+                <pre><code>{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "Allow access from s3 tables",
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "maintenance.s3tables.amazonaws.com"
+      },
+      "Action": [
+        "kms:Describe*",
+        "kms:Get*",
+        "kms:List*",
+        "kms:RevokeGrant"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
+                </code></pre>
+
+                <h3>Advanced Maintenance Configuration</h3>
+                <p>The S3 Tables implementation includes sophisticated maintenance settings for optimal performance and cost control:</p>
+                <pre><code>maintenance_configuration = {
+  iceberg_compaction = {
+    settings = {
+      target_file_size_mb = var.target_file_size_mb
+    }
+    status = var.compaction_status
+  }
+  iceberg_snapshot_management = {
+    settings = {
+      max_snapshot_age_hours = var.max_snapshot_age_hours
+      min_snapshots_to_keep = var.min_snapshots_to_keep
+    }
+    status = var.snapshot_status
+  }
+}
+                </code></pre>
+                <p>These configurations provide:</p>
+                <ul>
+                    <li><strong>Automatic Compaction:</strong> Maintains optimal file sizes (default 256MB) for query performance</li>
+                    <li><strong>Snapshot Management:</strong> Retains minimum snapshots while automatically cleaning up old data</li>
+                    <li><strong>Configurable Retention:</strong> Flexible retention policies aligned with business requirements</li>
+                </ul>
+
+                <h3>Comprehensive IAM Permissions</h3>
+                <p>The migration required targeted IAM policy updates to support S3 Tables and Glue federation:</p>
+                <pre><code>statement {
+  sid = "S3TableAccessViaGlueFederation"
+  actions = [
+    "glue:GetTable",
+    "glue:GetDatabase",
+    "glue:UpdateTable"
+  ]
+  resources = [
+    "arn:aws:glue:${var.AWS_REGION}:${var.AWS_ACCOUNT_ID}:catalog/s3tablescatalog/*",
+    "arn:aws:glue:${var.AWS_REGION}:${var.AWS_ACCOUNT_ID}:catalog/s3tablescatalog"
+  ]
+}
+                </code></pre>
+
+                <h3>References:</h3>
+                <ul>
+                    <li><a href="https://docs.aws.amazon.com/kinesis/">Amazon Kinesis Documentation</a></li>
+                    <li><a href="https://docs.aws.amazon.com/s3tables/">AWS S3 Tables Documentation</a></li>
+                    <li><a href="https://docs.aws.amazon.com/lake-formation/">AWS Lake Formation Documentation</a></li>
+                    <li><a href="https://docs.aws.amazon.com/athena/">Amazon Athena Documentation</a></li>
+                    <li><a href="https://iceberg.apache.org/">Apache Iceberg Documentation</a></li>
+                </ul>
+            </section>
+        </main>
+    </div>
+</body>
+</html>
